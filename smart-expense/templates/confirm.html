@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<h1>{{ title }}</h1><p>{{ item }}</p><p>This removes the record permanently.</p><form method="post">{% csrf_token %}<button>Confirm deletion</button></form>{% endblock %}

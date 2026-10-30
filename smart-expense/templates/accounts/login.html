@@ -1,2 +1,1 @@
-{% extends "base.html" %}{% block content %}<h1>Login</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Login</button></form>{% endblock %}
+{% extends 'base.html' %}{% block content %}<h1>Welcome back</h1><form method="post" class="panel">{% csrf_token %}{{ form.as_p }}<button>Login</button></form><p>New here? <a href="{% url 'accounts:register' %}">Create an account</a>.</p>{% endblock %}

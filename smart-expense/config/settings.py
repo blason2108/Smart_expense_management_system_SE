@@ -1,4 +1,5 @@
 """Settings for Smart Expense & Budget Management (SRS v1.0). All config comes from env vars."""
+
 import os
 from pathlib import Path
 
@@ -24,11 +25,22 @@ ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 INSTALLED_APPS = [
-    "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
-    "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # project apps (one per SRS module)
-    "accounts", "categories", "transactions", "budgets", "alerts",
-    "dashboard", "reports", "adminpanel", "audit",
+    "accounts",
+    "categories",
+    "transactions",
+    "budgets",
+    "alerts",
+    "dashboard",
+    "reports",
+    "adminpanel",
+    "audit",
 ]
 
 MIDDLEWARE = [
@@ -43,32 +55,38 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-TEMPLATES = [{
-    "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [BASE_DIR / "templates"],
-    "APP_DIRS": True,
-    "OPTIONS": {"context_processors": [
-        "django.template.context_processors.request",
-        "django.contrib.auth.context_processors.auth",
-        "django.contrib.messages.context_processors.messages",
-    ]},
-}]
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ]
+        },
+    }
+]
 WSGI_APPLICATION = "config.wsgi.application"
 
 # Database: PostgreSQL by default; DB_ENGINE=sqlite is for quick local/unit-test runs only.
 if os.environ.get("DB_ENGINE", "postgres").lower() == "sqlite":
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 else:
-    DATABASES = {"default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "smart_expense"),
-        "USER": os.environ.get("DB_USER", "smart_expense"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }}
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "smart_expense"),
+            "USER": os.environ.get("DB_USER", "smart_expense"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
 
-AUTH_USER_MODEL = "accounts.User"          # must be set before first migration
+AUTH_USER_MODEL = "accounts.User"  # must be set before first migration
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "dashboard:home"
 LOGOUT_REDIRECT_URL = "accounts:login"
@@ -94,7 +112,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # SEB-SR-001: HTTPS enforcement in production (set SECURE_SSL_REDIRECT=true there).
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Only enable behind a trusted proxy which strips incoming forwarding headers.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env_bool("TRUST_PROXY_SSL_HEADER") else None
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "0"))
@@ -108,8 +127,21 @@ BUDGET_ALERT_DEFAULT_THRESHOLD_PERCENT = int(os.environ.get("BUDGET_ALERT_DEFAUL
 
 # SEB-SR-005: logs must never contain passwords/secrets. Log events, not request bodies.
 LOGGING = {
-    "version": 1, "disable_existing_loggers": False,
+    "version": 1,
+    "disable_existing_loggers": False,
     "formatters": {"std": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "std"}},
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
 }
+
+# Opt-in production mode fails closed; local setup continues to work with explicit dev settings.
+if os.environ.get("DJANGO_ENV") == "production":
+    from django.core.exceptions import ImproperlyConfigured
+
+    if SECRET_KEY == "dev-only-insecure-key-change-me" or len(SECRET_KEY) < 50 or DEBUG:
+        raise ImproperlyConfigured("Production requires a strong DJANGO_SECRET_KEY and DJANGO_DEBUG=false.")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = max(31536000, SECURE_HSTS_SECONDS)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
