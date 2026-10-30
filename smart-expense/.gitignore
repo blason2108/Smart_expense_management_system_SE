@@ -12,3 +12,6 @@ htmlcov/
 .scannerwork/
 .idea/
 .vscode/
+
+test-results.xml
+load-results*

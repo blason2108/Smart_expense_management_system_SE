@@ -13,6 +13,7 @@ def test_password_is_hashed():  # TC-SEC-01
 @pytest.mark.django_db
 def test_duplicate_email_rejected():  # TC-AUTH-01 (model level)
     from django.db import IntegrityError
+
     User = get_user_model()
     User.objects.create_user("a", "same@example.com", "S3cure-pass!")
     with pytest.raises(IntegrityError):
