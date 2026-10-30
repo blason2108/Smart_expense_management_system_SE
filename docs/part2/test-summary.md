@@ -1,6 +1,6 @@
 # Executed automated validation
 
-Execution environment: Python 3.12.14, Django 5.2.18, SQLite; local recovery build. This does not prove the PostgreSQL GitHub Actions run, browser compatibility, production HTTPS or manual user acceptance.
+Execution environment: Python 3.12.14, Django 5.2.18, SQLite; local recovery build. These retained local results are supplemented by the live CI evidence below. They do not prove full browser compatibility, production HTTPS or manual user acceptance.
 
 - Pytest: **78 passed**; combined line/branch coverage **97.00%**, over the existing 70% CI threshold.
 - Coverage includes accounts, categories, transactions, budgets, dashboard, reports and audit. Test files, migrations and demo management command are excluded. The production command and admin mutation paths require additional review/manual coverage.
@@ -16,7 +16,7 @@ Tests exercise valid/invalid registration; duplicate/case-insensitive email; log
 
 ## Outstanding acceptance
 
-Run the PostgreSQL workflow, dependency audit, performance under defined concurrent load (p90 ≤3 seconds), committed-data restart recovery, Chrome/Firefox core flows, representative-user walkthrough, original SAD comparison and production HTTPS checks. Keep actual outputs and approvals. Do not mark NFRs passed based on configuration or a local unit test alone.
+Run final main-branch CI after all accepted changes, performance under defined concurrent load (p90 ≤3 seconds), committed-data restart recovery, Chrome/Firefox core flows, representative-user walkthrough, original SAD comparison and production HTTPS checks. Keep actual outputs and approvals. Do not mark NFRs passed based on configuration or a local unit test alone.
 
 ## Reproducing NFR checks
 
@@ -38,3 +38,10 @@ locust -f tests/load/locustfile.py --host http://127.0.0.1:8000 --headless -u 5 
 The workload is five concurrent users reading dashboards and transaction histories. Inspect each endpoint's 90th percentile and failure count in the CSV. This is an explicit proposed trial, not a faculty-approved definition of normal deployment load. Run a separate representative create/update transaction workload for complete performance acceptance.
 
 Executed local restart smoke: PASS — authenticated October CSV and session persisted across restarting the locally started Django server. Production PostgreSQL restart remains pending.
+
+## Subsequent execution evidence
+
+- User's Ubuntu laptop: Python 3.12.3 / Django 5.2.18; **78 passed in 41.33 seconds**, combined coverage **97.00%** (terminal output provided in this session).
+- Live PostgreSQL workflow: [successful run 41099229977](https://github.com/blason2108/Smart_expense_management_system_SE/actions/runs/41099229977) at recovery commit `11ec385`. This supersedes the initial state in which no live workflow had run.
+- User-provided browser screenshots show persisted Food/Salary categories and a Food budget at **850.00 / 1000.00 INR (85.0%)**, showing **Warning** at the configured 80% threshold. This is a limited browser smoke check, not complete usability/compatibility acceptance.
+- Project sync output reports 41 issues imported with Story Points. Native repository linking is still pending and is not counted as passed.
