@@ -1,0 +1,13 @@
+Local recovery validation, 30 October 2026
+Python 3.12.14; Django 5.2.18; SQLite
+pytest --cov-fail-under=70: 78 passed in 19.10s; total combined coverage 97.00%
+ruff check smart-expense: passed
+Django check: no issues (0 silenced)
+makemigrations --check --dry-run: No changes detected
+migrate --noinput: applied successfully
+Bandit medium/high gate: no medium/high findings; one low finding
+pip-audit -r requirements.txt: No known vulnerabilities found
+Local server restart: authenticated October CSV and session preserved
+Seeded core page and CSV smoke: all expected responses HTTP 200
+GitHub Actions/PostgreSQL live execution: not available
+Browser/video execution: browser download failed, no result claimed
