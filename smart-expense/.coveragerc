@@ -1,3 +1,4 @@
 [run]
+source = accounts,categories,transactions,budgets,dashboard,reports,audit
 branch = True
-omit = .venv/*, */migrations/*, manage.py, config/wsgi.py, config/asgi.py, */tests/*, */apps.py, */admin.py
+omit = */migrations/*,*/tests/*,*/management/*

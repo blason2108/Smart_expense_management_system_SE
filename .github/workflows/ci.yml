@@ -1,0 +1,52 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: smart-expense
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smart_expense
+          POSTGRES_USER: smart_expense
+          POSTGRES_PASSWORD: ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U smart_expense" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: ci-only-not-for-production-012345678901234567890
+      DB_ENGINE: postgres
+      DB_NAME: smart_expense
+      DB_USER: smart_expense
+      DB_PASSWORD: ci-password
+      DB_HOST: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: smart-expense/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py migrate --noinput
+      - run: bandit -r accounts categories transactions budgets dashboard reports audit config -x '*/tests/*' -ll
+      - run: pip-audit -r requirements.txt
+      - run: pytest --cov-fail-under=70
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-results
+          path: |
+            smart-expense/coverage.xml
+            smart-expense/test-results.xml
