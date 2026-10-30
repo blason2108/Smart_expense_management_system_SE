@@ -1,0 +1,11 @@
+// CD stub per course tools list (Jenkins). GitHub Actions remains the Sprint-1 CI.
+pipeline {
+  agent any
+  environment { IMAGE = "smart-expense:${env.BUILD_NUMBER}" }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Test')     { steps { sh 'python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt && DB_ENGINE=sqlite pytest' } }
+    stage('Build')    { steps { sh 'docker build -t $IMAGE .' } }
+    stage('Deploy')   { steps { sh 'docker compose up -d --build' } }
+  }
+}
