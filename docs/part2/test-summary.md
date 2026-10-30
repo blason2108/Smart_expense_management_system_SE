@@ -59,3 +59,11 @@ Executed by the user in the local browser and checked against the three supplied
 Requirement mapping: SEB-F-005, SEB-F-006, SEB-F-009, SEB-F-010 and SEB-F-011. The uploaded expanded Test Plan separates transaction edit (TC-TXN-03) and delete (TC-TXN-04); budget monitoring, alerts and dashboard map to TC-BUD-02, TC-ALT-01 and TC-DASH-01 respectively.
 
 Still unverified manually in this session: CSV contents, second-account isolation, admin mutations and their audit entries, full Chrome/Firefox compatibility, performance acceptance, production HTTPS and usability sign-off. Do not copy these three passes into those pending results.
+
+## Duplicate-email administrator setup regression
+
+The user attempted createsuperuser with an email already used by an ordinary account. The case-insensitive email database constraint prevented the duplicate, but the stock command displayed an IntegrityError traceback. A separate create_demo_admin command now validates duplicate emails before creation and reports a clear error for a concurrent identity collision. Ordinary accounts are not promoted.
+
+New local execution after the fix: **81 tests passed in 17.33 seconds**, combined coverage **97.00%**, on Python 3.12.14 / Django 5.2.18 / SQLite. The three added regression cases check exact duplicate email, case-insensitive duplicate email, and separate administrator creation with the existing standard account left unchanged. [JUnit evidence](evidence/admin-command-tests.xml). Management commands remain excluded from the coverage percentage, as documented earlier.
+
+The user's admin login screenshot also confirms that the ordinary account is denied administration access. It does not demonstrate a successful administrator login, admin mutation or audit-entry creation; those manual checks are still pending.
