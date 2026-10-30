@@ -3,12 +3,15 @@
 Usage:  gh auth login   (once)
         python docs/backlog/create_issues.py OWNER/REPO "Smart Expense Board"   [--dry-run]
 """
-import csv, subprocess, sys
+import csv
+import subprocess
+import sys
 from pathlib import Path
 
 repo, project = sys.argv[1], sys.argv[2]
 dry = "--dry-run" in sys.argv
-run = lambda cmd: print(" ".join(cmd)) if dry else subprocess.run(cmd, check=False)
+def run(cmd):
+    return print(" ".join(cmd)) if dry else subprocess.run(cmd, check=False)
 
 for ms in ("Sprint 1 (19-23 Oct)", "Sprint 2 (26-30 Oct)"):
     run(["gh", "api", f"repos/{repo}/milestones", "-f", f"title={ms}"])
