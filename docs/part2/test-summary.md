@@ -45,3 +45,17 @@ Executed local restart smoke: PASS — authenticated October CSV and session per
 - Live PostgreSQL workflow: [successful run 41099229977](https://github.com/blason2108/Smart_expense_management_system_SE/actions/runs/41099229977) at recovery commit `11ec385`. This supersedes the initial state in which no live workflow had run.
 - User-provided browser screenshots show persisted Food/Salary categories and a Food budget at **850.00 / 1000.00 INR (85.0%)**, showing **Warning** at the configured 80% threshold. This is a limited browser smoke check, not complete usability/compatibility acceptance.
 - Project sync output reports 41 issues imported with Story Points. Native repository linking is still pending and is not counted as passed.
+
+## Manual transaction lifecycle verification — 30 October 2026
+
+Executed by the user in the local browser and checked against the three supplied screenshots. Test data: Salary income 10000.00 INR, initial Food expense 850.00 INR, Food budget 1000.00 INR, warning threshold 80%. These results verify the displayed values and alert state; they do not establish every acceptance criterion for the mapped requirements.
+
+| Check | Action | Expected and observed result | Result | Evidence |
+|---|---|---|---|---|
+| MAN-01 | Add Food expense 200.00 within budget period | Expenses 1050.00; balance 8950.00; budget 105%; Exceeded | Pass | [Screenshot](evidence/manual/add-expense-exceeded.png) |
+| MAN-02 | Edit the added expense from 200.00 to 100.00 | Expenses 950.00; balance 9050.00; budget 95%; Warning | Pass | [Screenshot](evidence/manual/edit-expense-warning.png) |
+| MAN-03 | Delete that 100.00 expense | Expenses 850.00; balance 9150.00; budget 85%; Warning; deleted row absent | Pass | [Screenshot](evidence/manual/delete-expense-recalculated.png) |
+
+Requirement mapping: SEB-F-005, SEB-F-006, SEB-F-009, SEB-F-010 and SEB-F-011. The uploaded expanded Test Plan separates transaction edit (TC-TXN-03) and delete (TC-TXN-04); budget monitoring, alerts and dashboard map to TC-BUD-02, TC-ALT-01 and TC-DASH-01 respectively.
+
+Still unverified manually in this session: CSV contents, second-account isolation, admin mutations and their audit entries, full Chrome/Firefox compatibility, performance acceptance, production HTTPS and usability sign-off. Do not copy these three passes into those pending results.
