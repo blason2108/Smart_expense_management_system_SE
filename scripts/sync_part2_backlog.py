@@ -18,7 +18,13 @@ OWNERS = {
 
 
 def gh(*args, json_output=True):
-    result = subprocess.run(["gh", *args], text=True, check=True, capture_output=True)
+    result = subprocess.run(["gh", *args], text=True, check=False, capture_output=True)
+    if result.returncode:
+        raise SystemExit(
+            result.stderr.strip()
+            or result.stdout.strip()
+            or "GitHub CLI request failed."
+        )
     return (
         json.loads(result.stdout)
         if json_output and result.stdout.strip()
@@ -27,10 +33,19 @@ def gh(*args, json_output=True):
 
 
 def pages(endpoint):
-    # --slurp keeps each page as a separate array.
-    return [
-        item for page in gh("api", "--paginate", "--slurp", endpoint) for item in page
-    ]
+    # Older Ubuntu gh releases lack --slurp. Decode the concatenated JSON pages.
+    output = gh("api", "--paginate", endpoint, json_output=False)
+    decoder = json.JSONDecoder()
+    items = []
+    while output.strip():
+        page, end = decoder.raw_decode(output.lstrip())
+        if not isinstance(page, list):
+            raise SystemExit(
+                f"Expected a JSON list from {endpoint}, got {type(page).__name__}."
+            )
+        items.extend(page)
+        output = output.lstrip()[end:]
+    return items
 
 
 def api(method, endpoint, data):
