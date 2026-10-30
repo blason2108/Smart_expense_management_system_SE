@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
-"""Create labels, milestones and issues from backlog.csv using the GitHub CLI.
-Usage:  gh auth login   (once)
-        python docs/backlog/create_issues.py OWNER/REPO "Smart Expense Board"   [--dry-run]
-"""
-import csv
-import subprocess
-import sys
-from pathlib import Path
-
-repo, project = sys.argv[1], sys.argv[2]
-dry = "--dry-run" in sys.argv
-def run(cmd):
-    return print(" ".join(cmd)) if dry else subprocess.run(cmd, check=False)
+"""Use the idempotent repository script instead of the original duplicate-prone importer."""
 
 import runpy
 from pathlib import Path
