@@ -1,0 +1,46 @@
+name: CI
+on:
+  push: {branches: [main, develop]}
+  pull_request: {branches: [main, develop]}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_DB: smart_expense, POSTGRES_USER: smart_expense, POSTGRES_PASSWORD: ci-password}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U smart_expense" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: ci-secret-key
+      DB_ENGINE: postgres
+      DB_NAME: smart_expense
+      DB_USER: smart_expense
+      DB_PASSWORD: ci-password
+      DB_HOST: localhost
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12", cache: pip}
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Django system check + migrations drift
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+      - name: Security - static analysis (bandit)
+        run: bandit -r . -x ./.venv,./tests,*/tests -ll
+      - name: Security - dependency audit
+        run: pip-audit -r requirements.txt
+      - name: Tests with line + branch coverage
+        run: pytest --cov-fail-under=70
+      - uses: actions/upload-artifact@v4
+        with: {name: coverage, path: coverage.xml}
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
