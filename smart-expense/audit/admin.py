@@ -1,2 +1,18 @@
+from django.contrib import admin
 
-# Register your models here.
+from .models import AuditEvent
+
+
+@admin.register(AuditEvent)
+class AuditEventAdmin(admin.ModelAdmin):
+    list_display = ["timestamp", "actor", "event"]
+    readonly_fields = ["timestamp", "actor", "event"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
