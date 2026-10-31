@@ -71,8 +71,9 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database: PostgreSQL by default; DB_ENGINE=sqlite is for quick local/unit-test runs only.
-if os.environ.get("DB_ENGINE", "postgres").lower() == "sqlite":
+# Database: default to SQLite for a quick local start; PostgreSQL is used when explicitly configured.
+raw_db_engine = os.environ.get("DB_ENGINE", "sqlite").strip().lower()
+if raw_db_engine == "sqlite":
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 else:
     DATABASES = {
