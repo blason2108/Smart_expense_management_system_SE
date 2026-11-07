@@ -60,6 +60,26 @@ def api(method, endpoint, data):
     return json.loads(result.stdout)
 
 
+def link_repository(project_id):
+    repository = gh("api", f"repos/{REPO}")
+    result = api(
+        "POST",
+        "graphql",
+        {
+            "query": """mutation($project:ID!,$repository:ID!){
+            linkProjectV2ToRepository(input:{projectId:$project,repositoryId:$repository}){
+                clientMutationId
+            }
+        }""",
+            "variables": {"project": project_id, "repository": repository["node_id"]},
+        },
+    )
+    if result.get("errors"):
+        raise RuntimeError("; ".join(error["message"] for error in result["errors"]))
+    if result.get("data", {}).get("linkProjectV2ToRepository") is None:
+        raise RuntimeError("GitHub did not confirm the repository link.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -187,16 +207,18 @@ def main():
                 "json",
             )
         number = str(project["number"])
-        gh(
-            "project",
-            "link",
-            number,
-            "--owner",
-            args.project_owner,
-            "--repo",
-            REPO,
-            json_output=False,
-        )
+        # gh 2.45 rejects cross-owner links before contacting GitHub. Use the
+        # API with the actual repository ID; normal GitHub authorization applies.
+        repository_linked = False
+        try:
+            link_repository(project["id"])
+            repository_linked = True
+            print("Repository linked to Project.")
+        except (subprocess.CalledProcessError, RuntimeError, SystemExit) as exc:
+            print("Repository link pending:", getattr(exc, "stderr", None) or str(exc))
+            print(
+                "Continuing to import issues and story points; repository linking still needs verification."
+            )
         fields = gh(
             "project",
             "field-list",
@@ -246,6 +268,14 @@ def main():
                 str(value),
                 json_output=False,
             )
+        print(f"Imported/updated {len(linked)} issues and their Story Points.")
+        if not repository_linked:
+            print(
+                "ACTION REQUIRED: Project populated, but native repository link is not confirmed."
+            )
+            print(
+                "The repository owner may need to create/link a Project under their account."
+            )
         print(
             "Project:",
             project.get(
@@ -253,11 +283,10 @@ def main():
                 f"https://github.com/users/{args.project_owner}/projects/{number}",
             ),
         )
-    except subprocess.CalledProcessError as exc:
-        print(
-            "Issue sync completed, but Project setup failed. Check owner access and gh auth refresh -s project."
-        )
-        print(exc.stderr)
+    except (subprocess.CalledProcessError, RuntimeError, SystemExit) as exc:
+        print("Issue sync completed, but Project setup is incomplete.")
+        print(getattr(exc, "stderr", None) or str(exc))
+        print("Rerunning is safe: existing issues and the named Project are reused.")
         raise SystemExit(1) from exc
 
 

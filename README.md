@@ -2,7 +2,7 @@
 
 Django mini-project for UE24CS341A. SRS and original Test Plan remain unchanged at repository root.
 
-**Recovery status:** application code is on `recovery/part2-working-product`; owner review, team contribution checks, live board setup, video uploads and freeze approval remain open. This is not a claim of completion during the originally scheduled sprint dates.
+**Recovery status (30 October 2026):** the working application was merged through [PR #30](https://github.com/blason2108/Smart_expense_management_system_SE/pull/30). [PostgreSQL CI passed](https://github.com/blason2108/Smart_expense_management_system_SE/actions/runs/41099229977). The [team backlog board](https://github.com/users/SantoshKumarBollavaram/projects/1) contains 41 issues with Story Points according to the completed sync output. It is owned by Santosh; native repository linking remains pending because GitHub requires matching owners. Recordings, remaining acceptance checks, contribution/review evidence and freeze approval are still open. Actual completion dates are retained.
 
 ## Run the recovered application
 
