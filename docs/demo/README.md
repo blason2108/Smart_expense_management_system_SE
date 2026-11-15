@@ -1,6 +1,11 @@
 # Demo recording instructions
 
-Both recordings must show the working application. Record now with the actual date; do not imply the recovered build was recorded in the original sprint week. Videos are not present yet. Use your OS screen recorder or OBS, then commit `docs/demo/sprint-1.mp4` and `docs/demo/sprint-2.mp4` through a reviewed PR. Keep private accounts and secrets off screen.
+Both clips were captured from the working application with seeded demonstration data on 15 November 2026. They are silent browser recordings with no narrator or participant attribution.
+
+- [Sprint 1 recording](sprint-1.mp4), 45 seconds. Sign in, view categories, add/edit/delete a Food expense, and verify the dashboard balance and budget warning.
+- [Sprint 2 recording](sprint-2.mp4), 1 minute 43 seconds. Trigger a budget overrun, filter transactions, validate and create a budget, run a dated report and start the CSV/PDF downloads, then inspect user administration and audit history.
+
+The scripts below are available for a team-narrated retake, if the owner needs one for the submission.
 
 ## Preparation
 
