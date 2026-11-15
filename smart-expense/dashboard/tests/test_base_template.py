@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -100,3 +101,11 @@ def test_base_template_keeps_dashboard_content(client, user):
 @pytest.mark.django_db
 def test_pages_link_the_shared_stylesheet(client):
     assert "css/app.css" in client.get(reverse("accounts:login")).content.decode()
+
+
+def test_local_stylesheet_is_served_without_collectstatic(client, settings, tmp_path):
+    settings.DEBUG = False
+    settings.STATIC_ROOT = tmp_path
+    response = client.get(static("css/app.css"))
+    assert response.status_code == 200
+    assert response.headers["Content-Type"].startswith("text/css")

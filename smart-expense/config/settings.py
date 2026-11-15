@@ -109,6 +109,8 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+# Local runs can serve the shared stylesheet before collectstatic has been run.
+WHITENOISE_USE_FINDERS = os.environ.get("DJANGO_ENV") != "production"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # SEB-SR-001: HTTPS enforcement in production (set SECURE_SSL_REDIRECT=true there).
