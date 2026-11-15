@@ -21,8 +21,9 @@ pytest --cov-fail-under=70
     }
     stage('Build') { steps { dir('smart-expense') { sh 'docker compose build web' } } }
     stage('Owner approved deployment') {
+      when { beforeInput true; branch 'main' }
       input { message 'Deploy validated build to the configured academic demonstration host?' }
-      steps { dir('smart-expense') { sh 'docker compose up -d --build' } }
+      steps { dir('smart-expense') { sh 'docker compose up -d --wait --wait-timeout 90' } }
     }
   }
 }

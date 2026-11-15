@@ -3,6 +3,7 @@
 import os
 
 from locust import HttpUser, between, task
+from locust.exception import StopUser
 
 
 class FinanceUser(HttpUser):
@@ -20,14 +21,21 @@ class FinanceUser(HttpUser):
             headers={"Referer": self.host + "/accounts/login/"},
             catch_response=True,
         ) as response:
-            if "Logout" not in response.text:
+            logged_in = response.status_code == 200 and "Logout" in response.text
+            if not logged_in:
                 response.failure("Demo login failed; do not interpret response times as authenticated performance.")
-                raise RuntimeError("Demo login failed.")
+        if not logged_in:
+            raise StopUser()
+
+    def authenticated_get(self, path, name):
+        with self.client.get(path, name=name, allow_redirects=False, catch_response=True) as response:
+            if response.status_code != 200 or "Logout" not in response.text:
+                response.failure("Expected an authenticated page.")
 
     @task(2)
     def dashboard(self):
-        self.client.get("/")
+        self.authenticated_get("/", "/")
 
     @task
     def transactions(self):
-        self.client.get("/transactions/?month=2026-10")
+        self.authenticated_get("/transactions/?month=2026-10", "/transactions/ (October)")

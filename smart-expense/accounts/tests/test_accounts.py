@@ -1,5 +1,6 @@
 import pytest
 from django.test import Client, override_settings
+from django.urls import reverse
 
 from accounts.models import User
 from audit.models import AuditEvent
@@ -85,6 +86,36 @@ def test_admin_users_and_audit(client, user):
     client.force_login(user)
     assert client.get("/django-admin/accounts/user/").status_code == 200
     assert client.get("/django-admin/audit/auditevent/").status_code == 200
+
+
+def test_admin_deactivation_and_audit(client, user, other):
+    change_url = reverse("admin:accounts_user_change", args=[other.pk])
+    other.email = "private-admin-change@example.test"
+    form_data = {
+        "username": other.username,
+        "email": other.email,
+        "date_joined_0": other.date_joined.date().isoformat(),
+        "date_joined_1": "12:00:00",
+        "_save": "Save",
+    }
+
+    client.force_login(user)
+    assert client.post(change_url, form_data).status_code == 302
+    assert User.objects.get(pk=other.pk).is_active
+    assert not AuditEvent.objects.filter(event="admin_user_changed").exists()
+
+    user.is_staff = user.is_superuser = True
+    user.save()
+    assert client.post(change_url, form_data).status_code == 302
+    other.refresh_from_db()
+    assert not other.is_active
+    event = AuditEvent.objects.get(event="admin_user_changed", actor=user)
+    assert event.timestamp
+    audit_page = client.get(reverse("admin:audit_auditevent_changelist")).content
+    assert b"admin_user_changed" in audit_page
+    assert other.email.encode() not in audit_page
+    assert other.password.encode() not in audit_page
+    assert not Client().login(username=other.username, password="Reliable-Finance-2026!")
 
 
 def test_csrf(user):

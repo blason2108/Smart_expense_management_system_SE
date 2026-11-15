@@ -2,6 +2,7 @@ import csv
 import io
 
 import pytest
+from pypdf import PdfReader
 
 from categories.models import Category
 from transactions.models import Transaction
@@ -60,6 +61,41 @@ def test_report_summary_and_export(auth, records):
     assert "Secret" not in r.content.decode() and "Dinner" not in r.content.decode()
 
 
+def test_report_charts_and_month_control(auth, records):
+    response = auth.get("/reports/", {"month": "2026-10"})
+    assert b'value="2026-10"' in response.content
+    assert response.content.count(b"<meter ") == 2
+    assert b'max="100.00" value="100.00"' in response.content
+    assert b"Lunch" in response.content and b"Dinner" not in response.content
+
+
+def test_custom_range_and_pdf_export(auth, records):
+    period = {"start": "2026-10-20", "end": "2026-11-01"}
+    report = auth.get("/reports/", period)
+    assert report.context["income"] == 0
+    assert report.context["expense"] == 300
+    assert report.context["balance"] == -300
+    assert list(report.context["by_month"].values_list("total", flat=True)) == [100, 200]
+
+    response = auth.get("/reports/", {**period, "export": "pdf"})
+    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Disposition"] == 'attachment; filename="expense-report.pdf"'
+    text = PdfReader(io.BytesIO(response.content)).pages[0].extract_text()
+    assert "Lunch" in text and "Dinner" in text
+    assert "Expenses: 300.00 INR" in text and "Balance: -300.00 INR" in text
+    assert "Secret" not in text and "Salary" not in text
+
+
+def test_pdf_wraps_literal_text_and_empty_reports(auth, user, category):
+    Transaction.objects.create(
+        owner=user, category=category, kind="expense", date="2026-10-20", amount=1, description="<note> & details"
+    )
+    response = auth.get("/reports/", {"month": "2026-10", "export": "pdf"})
+    assert "<note> & details" in PdfReader(io.BytesIO(response.content)).pages[0].extract_text()
+    response = auth.get("/reports/", {"month": "2026-12", "export": "pdf"})
+    assert "No transactions match." in PdfReader(io.BytesIO(response.content)).pages[0].extract_text()
+
+
 def test_csv_formula_escape(auth, user, category):
     Transaction.objects.create(
         owner=user,
@@ -73,8 +109,9 @@ def test_csv_formula_escape(auth, user, category):
     assert rows[1][-1].startswith("'=")
 
 
-def test_invalid_export_is_form(auth):
-    assert auth.get("/reports/", {"month": "invalid", "export": "csv"})["Content-Type"].startswith("text/html")
+@pytest.mark.parametrize("export", ["csv", "pdf"])
+def test_invalid_export_is_form(auth, export):
+    assert auth.get("/reports/", {"month": "invalid", "export": export})["Content-Type"].startswith("text/html")
 
 
 def test_dashboard_isolation(auth, records):
