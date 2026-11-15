@@ -24,7 +24,7 @@ You should see Python 3.12.x. If Python is older, install 3.12 before continuing
 ### Step 2. Get the code
 ```bash
 git clone https://github.com/<ORG>/<REPO>.git
-cd <REPO>
+cd <REPO>/smart-expense
 ```
 Check that `manage.py`, `requirements.txt`, `docker-compose.yml` and `.env.example` are in the folder (`ls`).
 
@@ -85,11 +85,12 @@ python manage.py createsuperuser
 
 ### Step 7. Run the app
 ```bash
+python manage.py collectstatic --noinput
 python manage.py runserver
 ```
 - App: http://127.0.0.1:8000
 - Health check: http://127.0.0.1:8000/healthz/ (should respond OK)
-- Admin: http://127.0.0.1:8000/admin/ (log in with the superuser from Step 6)
+- Admin: http://127.0.0.1:8000/django-admin/ (log in with the superuser from Step 6)
 
 Stop the server with `Ctrl+C`.
 
