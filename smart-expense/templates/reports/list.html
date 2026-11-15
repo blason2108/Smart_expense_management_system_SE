@@ -4,9 +4,10 @@
 .report-charts { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
 .report-chart th[scope="row"] { overflow-wrap: anywhere; }
 .report-chart .report-month { white-space: nowrap; }
-.report-chart td:last-child { width: 45%; }
-.report-share { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .5rem; }
-.report-share span { font-size: .875rem; font-variant-numeric: tabular-nums; }
+.report-chart td:last-child { width: 68%; }
+.report-amount { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .625rem; }
+.report-amount span { font-variant-numeric: tabular-nums; }
+.report-budget-meter { margin-top: .375rem; min-width: 3rem; }
 @media (max-width: 480px) {
     .report-chart th, .report-chart td { padding: .625rem .375rem; }
 }
@@ -25,34 +26,61 @@
     <section class="card" aria-labelledby="category-title">
         <h2 id="category-title">Expenses by category</h2>
         <table class="report-chart">
-            <thead><tr><th scope="col">Category</th><th scope="col">Total INR</th><th scope="col">Share of expenses</th></tr></thead>
+            <thead><tr><th scope="col">Category</th><th scope="col">Spending (INR)</th></tr></thead>
             <tbody>
                 {% for row in by_category %}
                 <tr>
                     <th scope="row">{{ row.category__name }}</th>
-                    <td>{{ row.total|floatformat:2 }}</td>
-                    <td>{% include "reports/expense_share.html" with share=row.share only %}</td>
+                    <td>{% include "reports/expense_amount_bar.html" with amount=row.total scale=expense_scale only %}</td>
                 </tr>
-                {% empty %}<tr><td colspan="3">No expenses.</td></tr>{% endfor %}
+                {% empty %}<tr><td colspan="2">No expenses.</td></tr>{% endfor %}
             </tbody>
         </table>
+        {% if by_category %}<p class="muted">Scale ₹0–₹{{ expense_scale|floatformat:"-2g" }}</p>{% endif %}
     </section>
     <section class="card" aria-labelledby="month-title">
         <h2 id="month-title">Expenses by month</h2>
         <table class="report-chart">
-            <thead><tr><th scope="col">Month</th><th scope="col">Total INR</th><th scope="col">Share of expenses</th></tr></thead>
+            <thead><tr><th scope="col">Month</th><th scope="col">Spending (INR)</th></tr></thead>
             <tbody>
                 {% for row in by_month %}
                 <tr>
                     <th scope="row" class="report-month">{{ row.month|date:'Y-m' }}</th>
-                    <td>{{ row.total|floatformat:2 }}</td>
-                    <td>{% include "reports/expense_share.html" with share=row.share only %}</td>
+                    <td>{% include "reports/expense_amount_bar.html" with amount=row.total scale=expense_scale only %}</td>
                 </tr>
-                {% empty %}<tr><td colspan="3">No expenses.</td></tr>{% endfor %}
+                {% empty %}<tr><td colspan="2">No expenses.</td></tr>{% endfor %}
             </tbody>
         </table>
+        {% if by_month %}<p class="muted">Scale ₹0–₹{{ expense_scale|floatformat:"-2g" }}</p>{% endif %}
     </section>
 </div>
+{% if report_budgets %}
+<section class="card scroll" aria-labelledby="report-budgets-title">
+    <h2 id="report-budgets-title">Budget usage</h2>
+    <p class="muted">Compares matching expenses within each budget’s dates with its full limit.</p>
+    <table>
+        <thead>
+            <tr><th scope="col">Budget</th><th scope="col">Period</th>
+                <th scope="col">Matching expenses / limit</th><th scope="col">Limit used</th></tr>
+        </thead>
+        <tbody>
+            {% for budget in report_budgets %}
+            <tr>
+                <th scope="row">{{ budget.category.name }}</th>
+                <td>{{ budget.start_date|date:"j M Y" }} to {{ budget.end_date|date:"j M Y" }}</td>
+                <td>₹{{ budget.report_spent|floatformat:"2g" }} / ₹{{ budget.limit|floatformat:"2g" }}</td>
+                <td>
+                    {{ budget.report_usage|floatformat:"-1" }}%
+                    <progress class="spending-meter report-budget-meter"
+                              value="{% if budget.report_usage > 100 %}100{% else %}{{ budget.report_usage|floatformat:'4u' }}{% endif %}"
+                              max="100" aria-hidden="true"></progress>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
 <section class="card scroll" aria-labelledby="report-items-title">
     <h2 id="report-items-title">Matching transactions</h2>
     <table>

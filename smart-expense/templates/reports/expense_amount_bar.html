@@ -1,0 +1,5 @@
+<div class="report-amount">
+    <meter min="0" max="{{ scale|floatformat:'2u' }}" value="{{ amount|floatformat:'2u' }}"
+           class="spending-meter" aria-hidden="true"></meter>
+    <span>{{ amount|floatformat:"2g" }}</span>
+</div>
