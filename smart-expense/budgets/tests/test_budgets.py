@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from django.utils.translation import override
 
 from budgets.models import Budget
 from categories.models import Category
@@ -69,6 +70,23 @@ def test_budget_lifecycle(auth, user, category):
 def test_budget_preserves_category_type(auth, user, category):
     auth.post("/budgets/new/", budget_data(category))
     assert auth.post(f"/categories/{category.pk}/edit/", {"name": "Food", "kind": "income"}).status_code == 200
+
+
+@pytest.mark.parametrize(
+    "amount,status,bar_value",
+    [("500", "on-track", "50.0000"), ("855", "warning", "85.5000"), ("1500", "exceeded", "100")],
+)
+def test_budget_meter_uses_the_limit_and_preserves_overage(auth, user, category, amount, status, bar_value):
+    assert auth.post("/budgets/new/", budget_data(category)).status_code == 302
+    Transaction.objects.create(owner=user, category=category, kind="expense", date="2026-10-20", amount=amount)
+
+    with override("de"):
+        response = auth.get("/budgets/")
+    content = response.content.decode()
+    assert f'class="spending-meter budget-meter budget-meter--{status}"' in content
+    assert f'value="{bar_value}" max="100"' in content
+    if status == "exceeded":
+        assert 'aria-valuetext="150,0% of limit used"' in content
 
 
 def test_other_users_expenses_not_counted(auth, user, other, category):

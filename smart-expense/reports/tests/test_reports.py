@@ -4,6 +4,7 @@ import io
 import pytest
 from pypdf import PdfReader
 
+from budgets.models import Budget
 from categories.models import Category
 from transactions.models import Transaction
 
@@ -52,7 +53,7 @@ def test_private_filter_rejected(auth, records):
 def test_report_summary_and_export(auth, records):
     r = auth.get("/reports/", {"month": "2026-10"})
     assert r.context["income"] == 1000 and r.context["expense"] == 100 and r.context["balance"] == 900
-    assert list(r.context["by_category"]) == [{"category__name": "Food", "total": 100}]
+    assert r.context["by_category"] == [{"category__name": "Food", "total": 100}]
     assert len(r.context["by_month"]) == 1
     r = auth.get("/reports/", {"month": "2026-10", "export": "csv"})
     assert r["Content-Type"].startswith("text/csv")
@@ -65,8 +66,51 @@ def test_report_charts_and_month_control(auth, records):
     response = auth.get("/reports/", {"month": "2026-10"})
     assert b'value="2026-10"' in response.content
     assert response.content.count(b"<meter ") == 2
-    assert b'max="100.00" value="100.00"' in response.content
+    assert response.content.count(b'<meter min="0" max="100.00" value="100.00"') == 2
     assert b"Lunch" in response.content and b"Dinner" not in response.content
+
+
+def test_report_charts_use_a_common_inr_scale(auth, records, user):
+    travel = Category.objects.create(owner=user, name="Travel", kind="expense")
+    Transaction.objects.create(owner=user, category=travel, kind="expense", date="2026-11-01", amount=100)
+
+    response = auth.get("/reports/")
+    assert response.context["expense_scale"] == 500
+    assert response.content.count(b'<meter min="0" max="500.00" value="300.00"') == 2
+    assert response.content.count(b'<meter min="0" max="500.00" value="100.00"') == 2
+
+    response = auth.get("/reports/", {"category": travel.pk})
+    assert response.content.count(b'<meter min="0" max="100.00" value="100.00"') == 2
+    response = auth.get("/reports/", {"kind": "income"})
+    assert b"<meter " not in response.content
+    assert response.content.count(b"No expenses.") == 2
+
+
+def test_report_budget_usage_matches_the_budget_and_report_dates(auth, records, user, other, category):
+    budget = Budget.objects.create(
+        owner=user, category=category, start_date="2026-10-01", end_date="2026-10-31", limit=1000
+    )
+    Budget.objects.create(
+        owner=other, category=Category.objects.get(owner=other), start_date="2026-10-01", end_date="2026-10-31",
+        limit=1000,
+    )
+    Transaction.objects.create(
+        owner=user, category=category, kind="expense", date="2026-10-31", amount=750, description="Groceries"
+    )
+
+    response = auth.get("/reports/")
+    assert response.context["expense"] == 1050
+    assert response.context["report_budgets"] == [budget]
+    assert response.context["report_budgets"][0].report_usage == 85
+    assert response.content.count(b'<meter min="0" max="2000.00"') == 3
+    assert b'value="85.0000"' in response.content
+
+    response = auth.get("/reports/", {"month": "2026-10"})
+    assert response.context["expense_scale"] == 1000
+    assert response.content.count(b'<meter min="0" max="1000.00" value="850.00"') == 2
+    assert "₹850.00 / ₹1,000.00" in response.content.decode()
+    assert auth.get("/reports/", {"q": "Groceries"}).context["report_budgets"][0].report_usage == 75
+    assert auth.get("/reports/", {"month": "2026-11"}).context["report_budgets"] == []
 
 
 def test_custom_range_and_pdf_export(auth, records):
@@ -75,7 +119,7 @@ def test_custom_range_and_pdf_export(auth, records):
     assert report.context["income"] == 0
     assert report.context["expense"] == 300
     assert report.context["balance"] == -300
-    assert list(report.context["by_month"].values_list("total", flat=True)) == [100, 200]
+    assert [row["total"] for row in report.context["by_month"]] == [100, 200]
 
     response = auth.get("/reports/", {**period, "export": "pdf"})
     assert response["Content-Type"] == "application/pdf"
