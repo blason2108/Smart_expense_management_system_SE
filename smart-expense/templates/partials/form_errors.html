@@ -1,0 +1,6 @@
+{# Form-level (non-field) errors. Usage: {% include "partials/form_errors.html" with form=form %} #}
+{% if form.non_field_errors %}
+<div class="alert alert-error" role="alert">
+  {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+</div>
+{% endif %}

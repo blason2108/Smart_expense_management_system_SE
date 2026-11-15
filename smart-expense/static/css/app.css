@@ -1,0 +1,62 @@
+/* Base styles: layout, navigation, message + form-validation pattern (FND-06 / SEB-NF-003).
+   Also holds the page styles (cards, grid, tables...) that used to be inlined in base.html. */
+:root {
+  --c-bg: #f4f7fb; --c-text: #183044; --c-muted: #516879; --c-border: #dce4ec;
+  --c-primary: #006a76; --c-nav: #142f43;
+  --c-success: #166534; --c-success-bg: #dcfce7;
+  --c-error: #9f2231;   --c-error-bg: #fee2e2;
+  --c-warning: #92400e; --c-warning-bg: #fef3c7;
+  --c-info: #1e40af;    --c-info-bg: #dbeafe;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--c-bg); color: var(--c-text); font: 16px/1.5 system-ui, sans-serif; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 22px; }
+main.container { margin: 32px auto; }
+a { color: var(--c-primary); }
+h1 { font-size: 30px; letter-spacing: -1px; }
+h2 { font-size: 21px; }
+
+/* Navigation */
+.navbar { background: var(--c-nav); color: #fff; }
+.navbar .container { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px; }
+.navbar .brand { font-weight: 700; color: #fff; text-decoration: none; margin-right: auto; }
+.navbar a.nav-link { color: #fff; text-decoration: none; padding: .35rem .7rem; border-radius: 6px; }
+.navbar a.nav-link:hover { background: rgba(255, 255, 255, .12); }
+.navbar a.nav-link.active { background: var(--c-primary); }
+.navbar .nav-user { color: #cbd8e3; font-size: .9rem; }
+.navbar form { display: inline; margin: 0; }
+.navbar button { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, .5); border-radius: 6px; padding: .35rem .7rem; cursor: pointer; }
+
+/* Cards, grid, tables */
+.card, form.panel, .panel { background: #fff; border: 1px solid var(--c-border); border-radius: 12px; padding: 22px; margin: 16px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.number { font-size: 30px; font-weight: 700; }
+.badge { font-weight: 700; }
+.muted, small, .helptext { color: var(--c-muted); }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { text-align: left; padding: 12px; border-bottom: 1px solid #dde5ed; }
+.scroll { overflow: auto; }
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.filters p { max-width: 220px; }
+
+/* Buttons and generic form controls (used by pages that still render form.as_p) */
+button, .button, .btn { background: var(--c-primary); color: #fff; border: 0; border-radius: 6px; padding: 10px 16px; font: inherit; cursor: pointer; text-decoration: none; display: inline-block; }
+input, select, textarea { padding: 10px; max-width: 100%; border: 1px solid #aab9c7; border-radius: 5px; font: inherit; }
+label { display: block; font-weight: 600; }
+form p { margin: 14px 0; }
+.errorlist, [role=alert] { color: var(--c-error); }
+
+/* Flash messages: Django level -> alert-success | alert-error | alert-warning | alert-info */
+.alert { padding: .7rem 1rem; border-radius: 6px; margin: 0 0 1rem; border: 1px solid transparent; }
+.alert-success { color: var(--c-success); background: var(--c-success-bg); }
+.alert-error   { color: var(--c-error);   background: var(--c-error-bg); }
+.alert-warning { color: var(--c-warning); background: var(--c-warning-bg); }
+.alert-info    { color: var(--c-info);    background: var(--c-info-bg); }
+
+/* Form-validation pattern: label, widget, help text, inline errors */
+.form-field { margin-bottom: 1rem; }
+.form-field label { margin-bottom: .25rem; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; }
+.form-field.has-error input, .form-field.has-error select, .form-field.has-error textarea { border-color: var(--c-error); }
+.field-help { display: block; color: var(--c-muted); font-size: .875rem; }
+.field-error { display: block; color: var(--c-error); font-size: .875rem; margin-top: .25rem; }

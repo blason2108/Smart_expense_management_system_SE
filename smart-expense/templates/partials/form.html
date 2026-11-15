@@ -1,0 +1,4 @@
+{# Standard form body: {% include "partials/form.html" with form=form submit_label="Save" %} (add <form> + csrf yourself) #}
+{% include "partials/form_errors.html" %}
+{% for field in form %}{% include "partials/form_field.html" with field=field %}{% endfor %}
+<button class="btn" type="submit">{{ submit_label|default:"Submit" }}</button>
