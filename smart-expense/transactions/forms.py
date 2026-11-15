@@ -18,7 +18,9 @@ class TransactionForm(forms.ModelForm):
 
 
 class FilterForm(forms.Form):
-    month = forms.DateField(required=False, input_formats=["%Y-%m"], widget=forms.DateInput(attrs={"type": "month"}))
+    month = forms.DateField(
+        required=False, input_formats=["%Y-%m"], widget=forms.DateInput(format="%Y-%m", attrs={"type": "month"})
+    )
     start = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
     end = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
     category = forms.ModelChoiceField(queryset=Category.objects.none(), required=False)

@@ -2,6 +2,8 @@
 
 Audit date: 30 October 2026. Original Sprint 1: 19–23 October; original Sprint 2: 26–30 October. Entries added during recovery must retain their actual creation dates.
 
+For the 15 November 2026 evidence and release gates, see the [Part 2 final report draft](final-report.md).
+
 ## Verified starting state
 
 - `main` at `044161f5b431937fb6b2e45840644e4bae14d3f9` had only README, SRS and Test Plan.

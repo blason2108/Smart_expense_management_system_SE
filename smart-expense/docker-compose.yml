@@ -19,6 +19,11 @@ services:
     depends_on:
       db: {condition: service_healthy}
     command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; assert urlopen('http://127.0.0.1:8000/healthz/', timeout=3).status == 200"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     ports: ["8000:8000"]
 volumes:
   pgdata:

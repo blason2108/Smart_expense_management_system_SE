@@ -16,3 +16,11 @@ Validation is recorded in `docs/part2/test-summary.md`. All code in this recover
 - Vishnu: repository-root workflow discovery, CI working-directory, coverage, dashboard totals, filtered reporting summaries.
 
 These are review responsibilities, not claims that review has already happened. Each member adds their real explanation, code-review findings and PR links before submission.
+
+## Completion pass — 15 November 2026
+
+User requested: review the shared Part 2 conversation and current GitHub backlog, implement missing features, close completed issues and provide Linux terminal commands.
+
+AI assistance: compared the open issues with the merged Django app, implemented report charts and PDF exports, added integration checks for report filtering and admin/audit behavior, and prepared deployment and acceptance updates. See [Part 2 final report draft](part2/final-report.md) for the measured evidence and remaining sign-offs.
+
+Member explanations and owner approvals should be recorded by the people who performed them.

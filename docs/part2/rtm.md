@@ -15,18 +15,18 @@ Source: original SRS Section 8 and Test Plan Sections 6–8. Paths below are rel
 | SEB-F-009 | Budget monitoring | budgets/models.py | TC-BUD-02 | Implemented; local automated regression passed; owner acceptance pending |
 | SEB-F-010 | Visible budget alerts | budgets/models.py; templates/dashboard/home.html | TC-ALT-01 | Implemented; local automated regression passed; owner acceptance pending |
 | SEB-F-011 | Dashboard | dashboard/views.py | TC-DASH-01 | Implemented; local automated regression passed; owner acceptance pending |
-| SEB-F-012 | Analysis summaries | reports/views.py | TC-ANL-01 | Implemented; local automated regression passed; owner acceptance pending |
+| SEB-F-012 | Category and monthly expense charts | reports/views.py; templates/reports/list.html | TC-ANL-01 | Filtered bars and exact amounts verified; owner acceptance pending |
 | SEB-F-013 | Search/filter | transactions/services.py | TC-SRCH-01 | Implemented; local automated regression passed; owner acceptance pending |
-| SEB-F-014 | Reports | reports/views.py | TC-RPT-01 | Implemented; local automated regression passed; owner acceptance pending |
-| SEB-F-015 | CSV export | reports/views.py | TC-RPT-02 | Implemented; local automated regression passed; owner acceptance pending |
+| SEB-F-014 | Month and custom-range reports | reports/views.py; transactions/services.py | TC-RPT-01 | Month and inclusive custom-range totals and records tested; owner acceptance pending |
+| SEB-F-015 | CSV and PDF export | reports/views.py; reports/pdf.py | TC-RPT-02 | Filtered exports tested, including opening and reading the PDF; owner acceptance pending |
 | SEB-F-016 | Isolation | owner-scoped views/forms in all data apps | TC-SEC-02 | Implemented; local automated regression passed; owner acceptance pending |
-| SEB-F-017 | Admin users | accounts/admin.py | TC-ADM-01 | Implemented; auth/admin access automated checks passed; admin mutation manual acceptance pending |
-| SEB-F-018 | Audit events | audit/signals.py; accounts/admin.py | TC-AUD-01 | Implemented; auth/admin access automated checks passed; admin mutation manual acceptance pending |
-| SEB-NF-001 | Performance | Cross-cutting | TC-PERF-01 | Load execution pending |
-| SEB-NF-002 | Reliability | Cross-cutting | TC-REL-01 | Restart execution pending |
+| SEB-F-017 | Admin users | accounts/admin.py | TC-ADM-01 | Admin deactivation succeeds and standard-user attempt leaves account active in automated test |
+| SEB-F-018 | Audit events | audit/signals.py; accounts/admin.py | TC-AUD-01 | Successful admin deactivation has timestamped event; email and password hash are absent from audit listing |
+| SEB-NF-001 | Performance | Cross-cutting | TC-PERF-01 | 76 ms dashboard and 41 ms filtered transactions at p90 on local seeded PostgreSQL; target-host acceptance pending |
+| SEB-NF-002 | Reliability | Cross-cutting | TC-REL-01 | Committed data and session preserved across PostgreSQL-backed application process restart |
 | SEB-NF-003 | Usability | Cross-cutting | TC-UX-01 | Responsive forms provided; representative-user execution pending |
 | SEB-NF-004 | Maintainability | Cross-cutting | TC-MNT-01 | Modular source documented; independent review pending |
-| SEB-NF-005 | Compatibility | Cross-cutting | TC-COMP-01 | Chrome/Firefox execution pending |
+| SEB-NF-005 | Compatibility | Cross-cutting | TC-COMP-01 | Firefox 159 and Chromium headless 153 passed browser automation |
 | SEB-NF-006 | Data integrity | Cross-cutting | TC-DATA-01 | Form/DB constraints; local automated checks passed |
 | SEB-SR-001 | HTTPS | Cross-cutting | TC-SEC-03 | Configured redirect/HSTS unit check passed; deployed TLS test pending |
 | SEB-SR-002 | Hashing | Cross-cutting | TC-SEC-01 | Local automated check passed |

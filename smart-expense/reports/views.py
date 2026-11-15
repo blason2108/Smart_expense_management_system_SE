@@ -9,10 +9,13 @@ from django.shortcuts import render
 from transactions.forms import FilterForm
 from transactions.services import selected_transactions, totals
 
+from .pdf import build_pdf
+
 
 def safe_cell(value):
     text = str(value)
-    return "'" + text if text.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")) else text
+    needs_escape = text.startswith(("\t", "\r", "\n")) or text.lstrip().startswith(("=", "+", "-", "@"))
+    return "'" + text if needs_escape else text
 
 
 @login_required
@@ -20,6 +23,12 @@ def index(request):
     form = FilterForm(request.GET, user=request.user)
     qs = selected_transactions(request.user, form)
     summary = totals(qs)
+    if request.GET.get("export") == "pdf" and form.is_valid():
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="expense-report.pdf"'
+        build_pdf(response, qs, summary)
+        return response
+
     if request.GET.get("export") == "csv" and form.is_valid():
         response = HttpResponse(content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = 'attachment; filename="expense-report.csv"'
@@ -41,5 +50,13 @@ def index(request):
     return render(
         request,
         "reports/list.html",
-        {"form": form, "items": qs, "by_category": by_category, "by_month": by_month, **summary},
+        {
+            "form": form,
+            "items": qs,
+            "by_category": by_category,
+            "by_month": by_month,
+            "category_max": max((row["total"] for row in by_category), default=1),
+            "month_max": max((row["total"] for row in by_month), default=1),
+            **summary,
+        },
     )
