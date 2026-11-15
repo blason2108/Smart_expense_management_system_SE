@@ -3,8 +3,30 @@
 <style>
 .report-charts { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
 .report-chart th[scope="row"] { overflow-wrap: anywhere; }
-.report-chart td:last-child { width: 35%; }
-.report-chart meter { width: 100%; height: 1.2rem; accent-color: #006a76; }
+.report-chart .report-month { white-space: nowrap; }
+.report-chart td:last-child { width: 45%; }
+.report-share { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .5rem; }
+.report-share span { font-size: .875rem; font-variant-numeric: tabular-nums; }
+.report-share meter {
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: .625rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--c-border);
+}
+.report-share meter::-webkit-meter-bar {
+    height: .625rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--c-border);
+}
+.report-share meter::-webkit-meter-optimum-value { border-radius: 999px; background: var(--c-primary); }
+.report-share meter::-moz-meter-bar { border-radius: 999px; background: var(--c-primary); }
+@media (max-width: 480px) {
+    .report-chart th, .report-chart td { padding: .625rem .375rem; }
+}
 </style>
 <h1>Reports and expense analysis</h1>
 <form method="get" class="filters panel">
@@ -20,14 +42,13 @@
     <section class="card" aria-labelledby="category-title">
         <h2 id="category-title">Expenses by category</h2>
         <table class="report-chart">
-            <thead><tr><th scope="col">Category</th><th scope="col">Total INR</th><th scope="col">Bar</th></tr></thead>
+            <thead><tr><th scope="col">Category</th><th scope="col">Total INR</th><th scope="col">Share of expenses</th></tr></thead>
             <tbody>
                 {% for row in by_category %}
                 <tr>
                     <th scope="row">{{ row.category__name }}</th>
                     <td>{{ row.total|floatformat:2 }}</td>
-                    <td><meter min="0" max="{{ category_max|floatformat:'2u' }}" value="{{ row.total|floatformat:'2u' }}"
-                               aria-hidden="true"></meter></td>
+                    <td>{% include "reports/expense_share.html" with share=row.share only %}</td>
                 </tr>
                 {% empty %}<tr><td colspan="3">No expenses.</td></tr>{% endfor %}
             </tbody>
@@ -36,14 +57,13 @@
     <section class="card" aria-labelledby="month-title">
         <h2 id="month-title">Expenses by month</h2>
         <table class="report-chart">
-            <thead><tr><th scope="col">Month</th><th scope="col">Total INR</th><th scope="col">Bar</th></tr></thead>
+            <thead><tr><th scope="col">Month</th><th scope="col">Total INR</th><th scope="col">Share of expenses</th></tr></thead>
             <tbody>
                 {% for row in by_month %}
                 <tr>
-                    <th scope="row">{{ row.month|date:'Y-m' }}</th>
+                    <th scope="row" class="report-month">{{ row.month|date:'Y-m' }}</th>
                     <td>{{ row.total|floatformat:2 }}</td>
-                    <td><meter min="0" max="{{ month_max|floatformat:'2u' }}" value="{{ row.total|floatformat:'2u' }}"
-                               aria-hidden="true"></meter></td>
+                    <td>{% include "reports/expense_share.html" with share=row.share only %}</td>
                 </tr>
                 {% empty %}<tr><td colspan="3">No expenses.</td></tr>{% endfor %}
             </tbody>

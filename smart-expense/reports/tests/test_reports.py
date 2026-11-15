@@ -52,7 +52,7 @@ def test_private_filter_rejected(auth, records):
 def test_report_summary_and_export(auth, records):
     r = auth.get("/reports/", {"month": "2026-10"})
     assert r.context["income"] == 1000 and r.context["expense"] == 100 and r.context["balance"] == 900
-    assert list(r.context["by_category"]) == [{"category__name": "Food", "total": 100}]
+    assert r.context["by_category"] == [{"category__name": "Food", "total": 100, "share": 100}]
     assert len(r.context["by_month"]) == 1
     r = auth.get("/reports/", {"month": "2026-10", "export": "csv"})
     assert r["Content-Type"].startswith("text/csv")
@@ -65,8 +65,26 @@ def test_report_charts_and_month_control(auth, records):
     response = auth.get("/reports/", {"month": "2026-10"})
     assert b'value="2026-10"' in response.content
     assert response.content.count(b"<meter ") == 2
-    assert b'max="100.00" value="100.00"' in response.content
+    assert b"Share of expenses" in response.content
+    assert response.content.count(b"<span>100%</span>") == 2
     assert b"Lunch" in response.content and b"Dinner" not in response.content
+
+
+def test_report_shares_use_total_filtered_expenses(auth, records, user):
+    travel = Category.objects.create(owner=user, name="Travel", kind="expense")
+    Transaction.objects.create(owner=user, category=travel, kind="expense", date="2026-11-01", amount=100)
+
+    response = auth.get("/reports/")
+    assert [row["share"] for row in response.context["by_category"]] == [75, 25]
+    assert [row["share"] for row in response.context["by_month"]] == [25, 75]
+    assert response.content.count(b'<meter min="0" max="100" value="75.0000"') == 2
+    assert b"<span>25%</span>" in response.content
+
+    response = auth.get("/reports/", {"category": travel.pk})
+    assert response.content.count(b"<span>100%</span>") == 2
+    response = auth.get("/reports/", {"kind": "income"})
+    assert b"<meter " not in response.content
+    assert response.content.count(b"No expenses.") == 2
 
 
 def test_custom_range_and_pdf_export(auth, records):
@@ -75,7 +93,7 @@ def test_custom_range_and_pdf_export(auth, records):
     assert report.context["income"] == 0
     assert report.context["expense"] == 300
     assert report.context["balance"] == -300
-    assert list(report.context["by_month"].values_list("total", flat=True)) == [100, 200]
+    assert [row["total"] for row in report.context["by_month"]] == [100, 200]
 
     response = auth.get("/reports/", {**period, "export": "pdf"})
     assert response["Content-Type"] == "application/pdf"

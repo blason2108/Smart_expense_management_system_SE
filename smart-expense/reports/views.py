@@ -18,6 +18,14 @@ def safe_cell(value):
     return "'" + text if needs_escape else text
 
 
+def expense_shares(groups):
+    rows = list(groups)
+    total = sum(row["total"] for row in rows)
+    for row in rows:
+        row["share"] = 100 * row["total"] / total
+    return rows
+
+
 @login_required
 def index(request):
     form = FilterForm(request.GET, user=request.user)
@@ -53,10 +61,8 @@ def index(request):
         {
             "form": form,
             "items": qs,
-            "by_category": by_category,
-            "by_month": by_month,
-            "category_max": max((row["total"] for row in by_category), default=1),
-            "month_max": max((row["total"] for row in by_month), default=1),
+            "by_category": expense_shares(by_category),
+            "by_month": expense_shares(by_month),
             **summary,
         },
     )
