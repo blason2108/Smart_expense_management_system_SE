@@ -8,4 +8,6 @@
   Dashboard p90 was 47 ms and filtered transactions p90 was 40 ms.
 - #43 Browser compatibility: Brave and Firefox both passed the automated checks
   for authentication, transactions, budgets, dashboard, CSV and PDF.
-- #43 Representative-user usability walkthrough: pending.
+- #43 Manual usability walkthrough: A representative user added an expense
+  and created a budget successfully. When they entered a threshold of 101,
+  the app showed a validation message and prevented the budget from being saved.
