@@ -45,6 +45,8 @@ jobs:
       - run: bandit -r accounts categories transactions budgets dashboard reports audit config -x '*/tests/*' -ll
       - run: pip-audit -r requirements.txt
       - run: pytest --cov-fail-under=70
+      - name: Generate unit-only coverage
+        run: bash scripts/unit-coverage.sh
       - name: SonarQube scan and quality gate
         if: vars.SONAR_PROJECT_KEY != '' && vars.SONAR_HOST_URL != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
@@ -64,3 +66,8 @@ jobs:
           path: |
             smart-expense/coverage.xml
             smart-expense/test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-validation-results
+          path: smart-expense/unit-results/
