@@ -103,6 +103,20 @@ python manage.py makemigrations --check --dry-run   # must report "No changes de
 ```
 All five should pass before you open a PR. To auto-fix most ruff issues: `ruff check . --fix`.
 
+### Unit-only coverage
+
+From `smart-expense/` with the virtual environment active:
+
+```bash
+bash scripts/unit-coverage.sh
+xdg-open unit-results/html/index.html
+```
+
+The script runs `tests/unit/` without database access. It produces a separate HTML report with
+Files, Functions and Classes views, plus `unit-results/coverage.xml` and `unit-results/test-results.xml`.
+GitHub CI publishes those files as the `unit-validation-results` artifact. The 70% gate applies to
+the full suite, which includes integration tests.
+
 ### Step 9. (Optional) Run the full stack in Docker
 ```bash
 docker compose up --build            # web on :8000, Postgres on :5432
